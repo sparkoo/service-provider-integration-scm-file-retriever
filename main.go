@@ -36,17 +36,6 @@ func main() {
 	if args.DevMode {
 		req.Debug = true
 	}
-
-	var logger *zap.Logger
-	if args.DevMode {
-		logger, _ = zap.NewDevelopment()
-	} else {
-		logger, _ = zap.NewProduction()
-	}
-	if logger != nil {
-		zap.ReplaceGlobals(logger)
-	}
-
 	start(args.Port)
 }
 
