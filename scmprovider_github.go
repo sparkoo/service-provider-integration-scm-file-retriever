@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/imroc/req"
+	"go.uber.org/zap"
 	"regexp"
 )
 
@@ -36,10 +37,22 @@ func (d *GitHubScmProvider) Detect(repoUrl, filepath, ref string) (bool, string,
 	if ref != "" {
 		param["ref"] = ref
 	}
+	r, e := req.Get(fmt.Sprintf(GithubAPITemplate, m["repoUser"], m["repoName"], filepath), param)
+	if e != nil {
+		zap.L().Error("Failed to make GitHub API call", zap.Error(e))
+		return true, "", e
+	}
+	statusCode := r.Response().StatusCode
+	zap.L().Debug(fmt.Sprintf(
+		"GitHub API call response code: %d", statusCode))
+	if statusCode >= 400 {
+		return true, "", fmt.Errorf("unexpected status code from GitHub API: %d. Response: %s", statusCode, r.String())
+	}
+
 	var file GithubFile
-	r, _ := req.Get(fmt.Sprintf(GithubAPITemplate, m["repoUser"], m["repoName"], filepath), param)
 	err := r.ToJSON(&file)
 	if err != nil {
+		zap.L().Error("Failed to parse GitHub json response", zap.Error(err))
 		return true, "", err
 	}
 	return true, file.DownloadUrl, nil
