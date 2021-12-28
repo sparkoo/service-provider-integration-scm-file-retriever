@@ -4,7 +4,6 @@ import (
 	"go.uber.org/zap"
 )
 
-
 func init() {
 	var logger *zap.Logger
 	logger, _ = zap.NewProduction()
