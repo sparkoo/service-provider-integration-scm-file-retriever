@@ -2,10 +2,7 @@ package main
 
 import (
 	"go.uber.org/zap"
-	"log"
 )
-
-var logger *log.Logger
 
 func init() {
 	var logger *zap.Logger
