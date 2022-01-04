@@ -10,6 +10,15 @@ as well as take care about the authentication.
 
 ### Usage
 
+Import 
+
+```
+import (
+  "github.com/redhat-appstudio/service-provider-integration-scm-file-retriever/gitfile"
+)
+```
+
+
 The main function signature looks as follows:  
 
 ```
