@@ -1,4 +1,4 @@
-module spi-file
+module github.com/redhat-appstudio/service-provider-integration-scm-file-retriever/gitfile
 
 go 1.16
 
