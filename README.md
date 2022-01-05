@@ -1,4 +1,6 @@
 # service-provider-integration-scm-file-retriever
+[![Build](https://github.com/redhat-appstudio/service-provider-integration-scm-file-retriever/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/redhat-appstudio/service-provider-integration-scm-file-retriever/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/redhat-appstudio/service-provider-integration-scm-file-retriever/branch/main/graph/badge.svg?token=MiQMw3V0wG)](https://codecov.io/gh/redhat-appstudio/service-provider-integration-scm-file-retriever)
 Library for downloading files from a source code management sites
 
 ### About
