@@ -13,12 +13,15 @@
 # limitations under the License.
 #
 
-name: Validate PRs
+name: Build
 
 on:
   pull_request:
     branches: [main]
-
+  push:
+    branches:
+      - main
+      - v0.*
 jobs:
   go:
     name: Check sources
