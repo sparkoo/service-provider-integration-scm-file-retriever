@@ -1,12 +1,15 @@
 package gitfile
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/imroc/req"
+)
 
 // ScmProvider defines the interface that in order to determine if URL belongs to SCM provider
 type ScmProvider interface {
 	// Detect will detect whether the string matches a known SCM file pattern
 	// and transform it to valid https url.
-	Detect(repoUrl, filepath, ref string) (bool, string, error)
+	Detect(repoUrl, filepath, ref string, header req.Header) (bool, string, error)
 }
 
 // ScmProviders is the list of detectors that are tried on an SCM URL.
@@ -20,9 +23,17 @@ func init() {
 	}
 }
 
-func Detect(repoUrl, filepath, ref string) (string, error) {
+func Detect(repoUrl, filepath, ref string, headers ...req.Header) (string, error) {
+	var actualHeader = req.Header{}
+	// Detect may be called w/out any headers, so let's check if there is any and squash into single if needed
+	for _, h := range headers {
+		for k, v := range h {
+			actualHeader[k] = v
+		}
+	}
+
 	for _, d := range ScmProviders {
-		ok, resultUrl, err := d.Detect(repoUrl, filepath, ref)
+		ok, resultUrl, err := d.Detect(repoUrl, filepath, ref, actualHeader)
 		if err != nil {
 			return "", err
 		}

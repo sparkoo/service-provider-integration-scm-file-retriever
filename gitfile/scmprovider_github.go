@@ -23,7 +23,7 @@ var GithubURLRegexpNames = GithubURLRegexp.SubexpNames()
 type GitHubScmProvider struct {
 }
 
-func (d *GitHubScmProvider) Detect(repoUrl, filepath, ref string) (bool, string, error) {
+func (d *GitHubScmProvider) Detect(repoUrl, filepath, ref string, header req.Header) (bool, string, error) {
 	if len(repoUrl) == 0 || !GithubURLRegexp.MatchString(repoUrl) {
 		return false, "", nil
 	}
@@ -37,7 +37,7 @@ func (d *GitHubScmProvider) Detect(repoUrl, filepath, ref string) (bool, string,
 	if ref != "" {
 		param["ref"] = ref
 	}
-	r, e := req.Get(fmt.Sprintf(GithubAPITemplate, m["repoUser"], m["repoName"], filepath), param)
+	r, e := req.Get(fmt.Sprintf(GithubAPITemplate, m["repoUser"], m["repoName"], filepath), param, header)
 	if e != nil {
 		zap.L().Error("Failed to make GitHub API call", zap.Error(e))
 		return true, "", e

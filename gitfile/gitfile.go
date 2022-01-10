@@ -7,13 +7,15 @@ import (
 	"io"
 )
 
-// nolint:deadcode,unused
 func GetFileContents(ctx context.Context, repoUrl, filepath, ref string, callback func(url string)) (io.ReadCloser, error) {
 
-	fileUrl, err := Detect(repoUrl, filepath, ref)
+	header := BuildAuthHeader(repoUrl)
+	authHeader := req.HeaderFromStruct(header)
+	fileUrl, err := Detect(repoUrl, filepath, ref, authHeader)
 	if err != nil {
 		return nil, err
 	}
-	r, _ := req.Get(fileUrl, ctx)
+
+	r, _ := req.Get(fileUrl, ctx, authHeader)
 	return io.NopCloser(bytes.NewBuffer(r.Bytes())), nil
 }
