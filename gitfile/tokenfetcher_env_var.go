@@ -2,9 +2,9 @@ package gitfile
 
 import "os"
 
-type EnvVarTokenSetter struct{}
+type EnvVarTokenFetcher struct{}
 
-func (s *EnvVarTokenSetter) BuildHeader(repoUrl string) HeaderStruct {
+func (s *EnvVarTokenFetcher) BuildHeader(repoUrl string) HeaderStruct {
 	envToken := os.Getenv("TOKEN")
 	if len(envToken) == 0 {
 		return HeaderStruct{}
