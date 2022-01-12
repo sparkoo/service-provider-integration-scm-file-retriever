@@ -10,7 +10,7 @@ type ScmProvider interface {
 	// and transform input params into valid file download URL.
 	// Params are repository, path to the file inside the repository, Git reference (branch/tag/commitId) and
 	// set of optional parameters ScmProvider may need, such as Http headers, additional resource identifiers etc
-	detect(repoUrl, filepath, ref string, v ...interface{}) (bool, string, error)
+	detect(repoUrl, filepath, ref string, opts ...interface{}) (bool, string, error)
 }
 
 // ScmProviders is the list of detectors that are tried on an SCM URL.
@@ -24,9 +24,9 @@ func init() {
 	}
 }
 
-func detect(repoUrl, filepath, ref string, v ...interface{}) (string, error) {
+func detect(repoUrl, filepath, ref string, opts ...interface{}) (string, error) {
 	for _, d := range ScmProviders {
-		ok, resultUrl, err := d.detect(repoUrl, filepath, ref, v...)
+		ok, resultUrl, err := d.detect(repoUrl, filepath, ref, opts...)
 		if err != nil {
 			return "", err
 		}
