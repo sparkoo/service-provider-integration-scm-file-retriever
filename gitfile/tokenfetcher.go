@@ -21,8 +21,8 @@ func init() {
 }
 
 func BuildAuthHeader(repoUrl string) HeaderStruct {
-	for _, s := range TokenFetchers {
-		headerStruct := s.BuildHeader(repoUrl)
+	for _, f := range TokenFetchers {
+		headerStruct := f.BuildHeader(repoUrl)
 		if len(headerStruct.Authorization) > 0 {
 			return headerStruct
 		}

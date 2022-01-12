@@ -23,7 +23,7 @@ var GithubURLRegexpNames = GithubURLRegexp.SubexpNames()
 type GitHubScmProvider struct {
 }
 
-func (d *GitHubScmProvider) Detect(repoUrl, filepath, ref string, v ...interface{}) (bool, string, error) {
+func (d *GitHubScmProvider) detect(repoUrl, filepath, ref string, v ...interface{}) (bool, string, error) {
 	if len(repoUrl) == 0 || !GithubURLRegexp.MatchString(repoUrl) {
 		return false, "", nil
 	}
@@ -39,20 +39,20 @@ func (d *GitHubScmProvider) Detect(repoUrl, filepath, ref string, v ...interface
 		v = append(v, param)
 	}
 
-	r, e := req.Get(fmt.Sprintf(GithubAPITemplate, m["repoUser"], m["repoName"], filepath), v...)
-	if e != nil {
-		zap.L().Error("Failed to make GitHub API call", zap.Error(e))
-		return true, "", e
+	resp, err := req.Get(fmt.Sprintf(GithubAPITemplate, m["repoUser"], m["repoName"], filepath), v...)
+	if err != nil {
+		zap.L().Error("Failed to make GitHub API call", zap.Error(err))
+		return true, "", err
 	}
-	statusCode := r.Response().StatusCode
+	statusCode := resp.Response().StatusCode
 	zap.L().Debug(fmt.Sprintf(
 		"GitHub API call response code: %d", statusCode))
 	if statusCode >= 400 {
-		return true, "", fmt.Errorf("unexpected status code from GitHub API: %d. Response: %s", statusCode, r.String())
+		return true, "", fmt.Errorf("unexpected status code from GitHub API: %d. Response: %s", statusCode, resp.String())
 	}
 
 	var file GithubFile
-	err := r.ToJSON(&file)
+	err = resp.ToJSON(&file)
 	if err != nil {
 		zap.L().Error("Failed to parse GitHub json response", zap.Error(err))
 		return true, "", err

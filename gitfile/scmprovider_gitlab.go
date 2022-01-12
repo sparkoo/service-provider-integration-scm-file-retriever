@@ -7,7 +7,7 @@ import (
 // GitLabScmProvider implements Detector to detect Gitlab URLs.
 type GitLabScmProvider struct{}
 
-func (d *GitLabScmProvider) Detect(repoUrl, filepath, ref string, v ...interface{}) (bool, string, error) {
+func (d *GitLabScmProvider) detect(repoUrl, filepath, ref string, v ...interface{}) (bool, string, error) {
 	if len(repoUrl) == 0 {
 		return false, "", nil
 	}

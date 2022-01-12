@@ -34,7 +34,7 @@ func TestGetFileHead(t *testing.T) {
 		}),
 	}
 
-	r1, err := Detect("https://github.com/foo-user/foo-repo", "myfile", "HEAD", client)
+	r1, err := detect("https://github.com/foo-user/foo-repo", "myfile", "HEAD", client)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -66,7 +66,7 @@ func TestGetFileHeadGitSuffix(t *testing.T) {
 		}),
 	}
 
-	r1, err := Detect("https://github.com/foo-user/foo-repo.git", "myfile", "HEAD", client)
+	r1, err := detect("https://github.com/foo-user/foo-repo.git", "myfile", "HEAD", client)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -98,7 +98,7 @@ func TestGetFileOnBranch(t *testing.T) {
 		}),
 	}
 
-	r1, err := Detect("https://github.com/foo-user/foo-repo", "myfile", "v0.1.0", client)
+	r1, err := detect("https://github.com/foo-user/foo-repo", "myfile", "v0.1.0", client)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -131,7 +131,7 @@ func TestGetFileOnCommitId(t *testing.T) {
 		}),
 	}
 
-	r1, err := Detect("https://github.com/foo-user/foo-repo", "myfile", "efaf08a367921ae130c524db4a531b7696b7d967", client)
+	r1, err := detect("https://github.com/foo-user/foo-repo", "myfile", "efaf08a367921ae130c524db4a531b7696b7d967", client)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -153,7 +153,7 @@ func TestGetUnexistingFile(t *testing.T) {
 		}),
 	}
 
-	_, err := Detect("https://github.com/foo-user/foo-repo", "myfile", "efaf08a367921ae130c524db4a531b7696b7d967", client)
+	_, err := detect("https://github.com/foo-user/foo-repo", "myfile", "efaf08a367921ae130c524db4a531b7696b7d967", client)
 	if err == nil {
 		t.Error("error expected")
 	}

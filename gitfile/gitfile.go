@@ -16,11 +16,11 @@ func GetFileContents(ctx context.Context, repoUrl, filepath, ref string, callbac
 
 	headerStruct := BuildAuthHeader(repoUrl)
 	authHeader := req.HeaderFromStruct(headerStruct)
-	fileUrl, err := Detect(repoUrl, filepath, ref, authHeader)
+	fileUrl, err := detect(repoUrl, filepath, ref, authHeader)
 	if err != nil {
 		return nil, err
 	}
 
-	r, _ := req.Get(fileUrl, ctx, authHeader)
-	return io.NopCloser(bytes.NewBuffer(r.Bytes())), nil
+	response, _ := req.Get(fileUrl, ctx, authHeader)
+	return io.NopCloser(bytes.NewBuffer(response.Bytes())), nil
 }

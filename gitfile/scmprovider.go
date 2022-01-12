@@ -6,11 +6,11 @@ import (
 
 // ScmProvider defines the interface that in order to determine if URL belongs to SCM provider
 type ScmProvider interface {
-	// Detect will check whether the provided repository URL matches a known SCM pattern,
+	// detect will check whether the provided repository URL matches a known SCM pattern,
 	// and transform input params into valid file download URL.
 	// Params are repository, path to the file inside the repository, Git reference (branch/tag/commitId) and
 	// set of optional parameters ScmProvider may need, such as Http headers, additional resource identifiers etc
-	Detect(repoUrl, filepath, ref string, v ...interface{}) (bool, string, error)
+	detect(repoUrl, filepath, ref string, v ...interface{}) (bool, string, error)
 }
 
 // ScmProviders is the list of detectors that are tried on an SCM URL.
@@ -24,9 +24,9 @@ func init() {
 	}
 }
 
-func Detect(repoUrl, filepath, ref string, v ...interface{}) (string, error) {
+func detect(repoUrl, filepath, ref string, v ...interface{}) (string, error) {
 	for _, d := range ScmProviders {
-		ok, resultUrl, err := d.Detect(repoUrl, filepath, ref, v...)
+		ok, resultUrl, err := d.detect(repoUrl, filepath, ref, v...)
 		if err != nil {
 			return "", err
 		}
