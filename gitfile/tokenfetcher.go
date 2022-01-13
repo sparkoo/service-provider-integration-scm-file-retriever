@@ -11,21 +11,10 @@ type TokenFetcher interface {
 	BuildHeader(repoUrl string) HeaderStruct
 }
 
-var TokenFetchers []TokenFetcher
-
-func init() {
-	TokenFetchers = []TokenFetcher{
-		new(EnvVarTokenFetcher),
-		//new(SecretTokenFetcher),
-	}
-}
-
-func BuildAuthHeader(repoUrl string) HeaderStruct {
-	for _, f := range TokenFetchers {
-		headerStruct := f.BuildHeader(repoUrl)
-		if len(headerStruct.Authorization) > 0 {
-			return headerStruct
-		}
+func BuildAuthHeader(repoUrl string, fetcher TokenFetcher) HeaderStruct {
+	headerStruct := fetcher.BuildHeader(repoUrl)
+	if len(headerStruct.Authorization) > 0 {
+		return headerStruct
 	}
 	return HeaderStruct{}
 }
