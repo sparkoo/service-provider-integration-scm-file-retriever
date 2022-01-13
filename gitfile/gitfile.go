@@ -8,7 +8,7 @@ import (
 )
 
 type GitFile struct {
-	fetcher *TokenFetcher
+	fetcher TokenFetcher
 }
 
 var gitFile = This()
@@ -23,7 +23,7 @@ func GetFileContents(ctx context.Context, repoUrl, filepath, ref string, callbac
 }
 
 func (g *GitFile) GetFileContents(ctx context.Context, repoUrl, filepath, ref string, callback func(url string)) (io.ReadCloser, error) {
-	headerStruct := BuildAuthHeader(repoUrl, *g.fetcher)
+	headerStruct := BuildAuthHeader(repoUrl, g.fetcher)
 	authHeader := req.HeaderFromStruct(headerStruct)
 	fileUrl, err := detect(repoUrl, filepath, ref, authHeader)
 	if err != nil {
@@ -34,7 +34,7 @@ func (g *GitFile) GetFileContents(ctx context.Context, repoUrl, filepath, ref st
 	return io.NopCloser(bytes.NewBuffer(response.Bytes())), nil
 }
 
-func (g *GitFile) SetTokenFetcher(fetcher *TokenFetcher) {
+func (g *GitFile) SetTokenFetcher(fetcher TokenFetcher) {
 	g.fetcher = fetcher
 }
 
