@@ -11,7 +11,7 @@ type TokenFetcher interface {
 	BuildHeader(repoUrl string) HeaderStruct
 }
 
-func BuildAuthHeader(repoUrl string, fetcher TokenFetcher) HeaderStruct {
+func buildAuthHeader(repoUrl string, fetcher TokenFetcher) HeaderStruct {
 	headerStruct := fetcher.BuildHeader(repoUrl)
 	if len(headerStruct.Authorization) > 0 {
 		return headerStruct
