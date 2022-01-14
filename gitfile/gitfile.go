@@ -11,7 +11,7 @@ type GitFile struct {
 	fetcher TokenFetcher
 }
 
-var gitFile = This()
+var gitFile = New(&EnvVarTokenFetcher{})
 
 // GetFileContents is a main entry function allowing to retrieve file content from the SCM provider.
 // It expects three file location parameters, from which the repository URL and path to the file are mandatory,
@@ -34,11 +34,7 @@ func (g *GitFile) GetFileContents(ctx context.Context, repoUrl, filepath, ref st
 	return io.NopCloser(bytes.NewBuffer(response.Bytes())), nil
 }
 
-func (g *GitFile) SetTokenFetcher(fetcher TokenFetcher) {
-	g.fetcher = fetcher
-}
-
-// This creates a new *GitFile instance
-func This() *GitFile {
-	return &GitFile{fetcher: &EnvVarTokenFetcher{}}
+// New creates a new *GitFile instance
+func New(fetcher TokenFetcher) *GitFile {
+	return &GitFile{fetcher: fetcher}
 }
