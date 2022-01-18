@@ -1,11 +1,13 @@
 package gitfile
 
-import "strings"
+import (
+	"strings"
+)
 
 // GitLabScmProvider implements Detector to detect Gitlab URLs.
 type GitLabScmProvider struct{}
 
-func (d *GitLabScmProvider) Detect(repoUrl, filepath, ref string) (bool, string, error) {
+func (d *GitLabScmProvider) detect(repoUrl, filepath, ref string, opts ...interface{}) (bool, string, error) {
 	if len(repoUrl) == 0 {
 		return false, "", nil
 	}
