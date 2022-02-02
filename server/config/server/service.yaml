@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: file-retriever-server-service
+spec:
+  ports:
+  - name: proxy
+    port: 8080
+    targetPort: proxy
+  selector:
+    app.kubernetes.io/name: service-provider-scm-file-retriever-server

@@ -17,15 +17,17 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"service-provider-integration-scm-file-retriever-server/websocket"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/mshaposhnik/service-provider-integration-scm-file-retriever/gitfile"
+	"github.com/redhat-appstudio/service-provider-integration-scm-file-retriever/gitfile"
 )
 
 func OkHandler(w http.ResponseWriter, _ *http.Request) {
@@ -62,10 +64,28 @@ func GetFileHandler(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid ref")
 		return
 	}
+	namespace := vars["namespace"]
+	if namespace == "" {
+		respondWithError(w, http.StatusBadRequest, "Invalid namespace")
+		return
+	}
+	pageId := r.Header.Get("X-WebSocket-pageId")
+	if pageId == "" {
+		respondWithError(w, http.StatusBadRequest, "Invalid header \"X-WebSocket-pageId\"")
+		return
+	}
+
+	if !pool.IsClientKnown(pageId) {
+		respondWithError(w, http.StatusBadRequest, "No registered websockets connected. Please reload the page.")
+		return
+	}
+
 	ctx := context.TODO()
-	gitFile := gitfile.Default()
-	content, err := gitFile.GetFileContents(ctx, repoUrl, filepath, ref, func(ctx, url string) {
+	content, err := gitfile.Default().GetFileContents(ctx, namespace, repoUrl, filepath, ref, func(ctx context.Context, url string) {
+		message := websocket.Message{Type: 777, Body: url, ClientID: pageId}
+		pool.SendMessage <- message
 	})
+
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -77,32 +97,67 @@ func GetFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+	message := websocket.Message{Type: 999, Body: "close if open", ClientID: pageId}
+	pool.SendMessage <- message
 }
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Executing middleware", r.Method)
 
-		//		if r.Method == "OPTIONS" {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers:", "Origin, Content-Type, X-Auth-Token, Authorization")
-		//	return
-		//}
-
 		next.ServeHTTP(w, r)
 		log.Println("Executing middleware again")
 	})
 }
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Do stuff here
+		log.Println(r.RequestURI)
+		// Call the next handler, which can be another middleware in the chain, or the final handler.
+		next.ServeHTTP(w, r)
+	})
+}
+
+func SendIndexHtml(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./static/index.html")
+}
+func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
+	log.Println("WebSocket Endpoint Hit")
+	conn, err := websocket.Upgrade(w, r)
+	if err != nil {
+		fmt.Fprintf(w, "%+v\n", err)
+	}
+	vars := mux.Vars(r)
+	log.Println("WebSocket vars[pageId]" + vars["pageId"])
+	client := &websocket.Client{
+		Conn: conn,
+		Pool: pool,
+		ID:   vars["pageId"],
+	}
+
+	pool.Register <- client
+	client.Read()
+}
+
+// initialize with default fetcher
+var pool = websocket.NewPool()
 
 func main() {
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
 
+	go pool.Start()
+
 	router := mux.NewRouter()
 	router.HandleFunc("/health", OkHandler).Methods("GET")
 	router.HandleFunc("/ready", OkHandler).Methods("GET")
-	router.HandleFunc("/scm/gitfile", GetFileHandler).Queries("repoUrl", "{repoUrl}").Queries("filepath", "{filepath}").Queries("ref", "{ref}").Methods("GET")
+	router.HandleFunc("/gitfile", GetFileHandler).Queries("repoUrl", "{repoUrl}").Queries("filepath", "{filepath}").Queries("ref", "{ref}").Queries("namespace", "{namespace}").Methods("GET")
+	router.HandleFunc("/ws/{pageId}", func(w http.ResponseWriter, r *http.Request) {
+		serveWs(pool, w, r)
+	})
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
 	srv := &http.Server{
@@ -112,7 +167,7 @@ func main() {
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
 		//Handler:      corsMiddleware(router), // UI testing
-		Handler: router, // Pass our instance of gorilla/mux in.
+		Handler: loggingMiddleware(router), // Pass our instance of gorilla/mux in.
 	}
 
 	// Run our server in a goroutine so that it doesn't block.
