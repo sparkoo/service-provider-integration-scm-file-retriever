@@ -24,10 +24,10 @@ import (
 The main function signature looks as follows:  
 
 ```
-func getFileContents(ctx context.Context, repoUrl, filepath, ref string, callback func(url string)) (io.ReadCloser, error) 
+func getFileContents(ctx context.Context, namespace, repoUrl, filepath, ref string, callback func(ctx context.Context, url string)) (io.ReadCloser, error) 
 ```
-It expects three file location parameters, from which repository URL and path to file are mandatory , and optional ref for the branch/tags.
-Function type parameter is a callback used when user authentication is needed, that function will be called with the URL to OAuth service, on which user need to be redirected.
+It expects the user namespace name to perform AccessToken related operations, three file location parameters, from which repository URL and path to file are mandatory , and optional ref for the branch/tags.
+Function type parameter is a callback used when user authentication is needed, that function will be called with the URL to OAuth service, on which user need to be redirected, and can be controlled using the context.
 
 ### URL and path formats
 Repository URLs may or may not contain `.git` suffixes. Paths are usual `/a/b/filename` format. Optional `ref` may
