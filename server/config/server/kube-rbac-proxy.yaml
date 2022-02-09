@@ -10,8 +10,8 @@ data:
         byQueryParameter:
           name: "namespace"
       resourceAttributes:
-        apiVersion: appstudio.redhat.com
-        resource: SPIAccessTokenBinding
+        apiGroup: appstudio.redhat.com
+        resource: spiaccesstokenbindings
         namespace: "{{ .Value }}"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
