@@ -6,7 +6,7 @@ require (
 	github.com/imroc/req v0.3.2
 	github.com/redhat-appstudio/service-provider-integration-operator v0.2.3
 	github.com/stretchr/testify v1.7.0
-	go.uber.org/zap v1.20.0
+	go.uber.org/zap v1.21.0
 	k8s.io/api v0.22.3
 	k8s.io/apimachinery v0.22.3
 	k8s.io/client-go v0.22.3
