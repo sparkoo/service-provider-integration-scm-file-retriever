@@ -66,7 +66,7 @@ func NewSpiTokenFetcher() *SpiTokenFetcher {
 
 func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl string, loginCallback func(ctx context.Context, url string)) (*HeaderStruct, error) {
 
-	var tBindingName = "file-retriever-binging-" + randStringBytes(6)
+	var tBindingName = "file-retriever-binding-" + randStringBytes(6)
 
 	// create binding
 	newBinding := newSPIATB(tBindingName, namespace, repoUrl)
