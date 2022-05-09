@@ -36,3 +36,39 @@ contain commit id, tag or branch name.
 ### Supported SCM providers
 
  - GitHub
+
+
+
+## Demo server application
+
+For the preview and testing purposes, there is demo server application developed, which consists of API endpoint,
+simple UI page and websocket connection mechanism. It's source code located under `server` module.
+
+### Building demo server application 
+
+Simplest way to build demo server app is to use docker based build. Simply run `docker build server -t <image_tag>` from the root of repository,
+and demo application image will be built.
+
+### Deploying demo server application
+
+There is a bunch of helpful scripts located at `server/hack` which can be used for different deployment scenarios.
+The general prerequisite for all deployment types is to have `SPI_GITHUB_CLIENT_ID` and `SPI_GITHUB_CLIENT_SECRET` environment variables to be set locally, containing
+correct values from registered GitHub OAuth application. 
+
+#### Deploying on Kubernetes
+  ...in progress
+
+#### Deploying on Openshift
+ Entry point for Openshift deployment is a `/server/hack/12_oc_deploy.sh` script. Please, note that script should
+be executed from the root project folder and not directly from `hack` folder. When executed, script performs installation
+of spi-controller, spi-oauth-service and spi-file-retriever-server deployments, so it's not necessary
+to pre-install something before neath. Script also performs Vault storage initialization and unseal.
+As a result of script execution, there must be three successful deployments in the `spi-system` project,
+and the `oauth-secret` secret must be created and filled with correct OAuth authentication data.
+Do not forget to align the server hostname in the secret and OAuth application callback URL on GitHub after installation.  
+
+   
+### Known peculiarities
+The most common problem which may occur during file resolving, is that configured OAuth application is not approved to access
+the particular repository. So, user must read GitHub OAuth authorization window carefully, and request permissions if needed.
+There also can be some inconsistency of the OAuth scopes, which may lead to token matching fail.
