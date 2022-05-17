@@ -4,7 +4,7 @@ resources:
   - ../default
   - oauth_route.yaml
   - scm_route.yaml
-  - https://github.com/redhat-appstudio/service-provider-integration-operator/config/default?ref=6d4f0be628badaba47ed1f60814842958ecb93bc
+  - https://github.com/redhat-appstudio/service-provider-integration-operator/config/default?ref=bcb63b7e3207ebc3f755c4e844b32df8ea1edd2f
 
 
 images:
