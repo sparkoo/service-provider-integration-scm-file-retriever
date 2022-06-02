@@ -20,7 +20,7 @@ COPY static/index.html static/index.html
 RUN export ARCH="$(uname -m)" && if [[ ${ARCH} == "x86_64" ]]; then export ARCH="amd64"; elif [[ ${ARCH} == "aarch64" ]]; then export ARCH="arm64"; fi && \
     CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} go build -a -o spi-file server.go
 
-FROM registry.access.redhat.com/ubi8-minimal:8.5
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6-751
 
 COPY --from=builder /spi-file/spi-file /spi-file
 COPY --from=builder /spi-file/static/index.html /static/index.html
