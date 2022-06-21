@@ -22,6 +22,7 @@ import (
 var (
 	noEnvVarFoundError = errors.New("no TOKEN variable found in env")
 )
+
 // EnvVarTokenFetcher token fetcher implementation that looks for token in the specific ENV variable.
 type EnvVarTokenFetcher struct{}
 

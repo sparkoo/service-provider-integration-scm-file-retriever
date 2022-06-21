@@ -43,8 +43,8 @@ const (
 
 var (
 	taskCancelledError = errors.New("task is cancelled")
-	timeoutError = errors.New("timed out")
-	matchError = errors.New("\"There is a problem in matching the token. Usually, that can be related to unauthorized OAuth application in the requested repository,\"+\n\t\t\t\t\"mismatch of scopes set, or other error.")
+	timeoutError       = errors.New("timed out")
+	matchError         = errors.New("\"There is a problem in matching the token. Usually, that can be related to unauthorized OAuth application in the requested repository,\"+\n\t\t\t\t\"mismatch of scopes set, or other error.")
 )
 
 func NewSpiTokenFetcher() *SpiTokenFetcher {
@@ -231,7 +231,7 @@ func randStringBytes(n int) string {
 	b := make([]byte, n)
 	for i := range b {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))] //nolint:gosec // we're using this to produce a random name so
-		                                                // the weakness of the generator is not a big deal here
+		// the weakness of the generator is not a big deal here
 	}
 	return string(b)
 }
