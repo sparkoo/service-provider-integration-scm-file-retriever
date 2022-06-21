@@ -13,7 +13,10 @@
 
 package gitfile
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 // HeaderStruct is the simple struct to carry authentication string from different suppliers
 type HeaderStruct struct {
@@ -29,7 +32,7 @@ type TokenFetcher interface {
 func buildAuthHeader(ctx context.Context, namespace, repoUrl string, fetcher TokenFetcher, loginCallback func(ctx context.Context, url string)) (*HeaderStruct, error) {
 	headerStruct, err := fetcher.BuildHeader(ctx, namespace, repoUrl, loginCallback)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetcher failed to build the auth header: %w", err)
 	}
 	return headerStruct, nil
 }

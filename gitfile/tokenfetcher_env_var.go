@@ -15,17 +15,20 @@ package gitfile
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"os"
 )
 
+var (
+	noEnvVarFoundError = errors.New("no TOKEN variable found in env")
+)
 // EnvVarTokenFetcher token fetcher implementation that looks for token in the specific ENV variable.
 type EnvVarTokenFetcher struct{}
 
 func (s *EnvVarTokenFetcher) BuildHeader(context.Context, string, string, func(ctx context.Context, url string)) (*HeaderStruct, error) {
 	envToken := os.Getenv("TOKEN")
 	if len(envToken) == 0 {
-		return nil, fmt.Errorf("no TOKEN variable found in env")
+		return nil, noEnvVarFoundError
 	}
 	return &HeaderStruct{
 		"Bearer " + envToken,
