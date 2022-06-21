@@ -14,11 +14,16 @@
 package gitfile
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
 	"github.com/imroc/req"
 	"go.uber.org/zap"
+)
+
+var (
+	unexpectedStatusCodeError = errors.New("unexpected status code from GitHub API")
 )
 
 type GithubFile struct {
@@ -56,20 +61,23 @@ func (d *GitHubScmProvider) detect(repoUrl, filepath, ref string, opts ...interf
 	resp, err := req.Get(fmt.Sprintf(GithubAPITemplate, m["repoUser"], m["repoName"], filepath), opts...)
 	if err != nil {
 		zap.L().Error("Failed to make GitHub API call", zap.Error(err))
-		return true, "", err
+		return true, "", fmt.Errorf("GitHub API call failed: %w", err)
 	}
-	statusCode := resp.Response().StatusCode
+	res := resp.Response()
+	defer res.Body.Close()
+
+	statusCode := res.StatusCode
 	zap.L().Debug(fmt.Sprintf(
 		"GitHub API call response code: %d", statusCode))
 	if statusCode >= 400 {
-		return true, "", fmt.Errorf("unexpected status code from GitHub API: %d. Response: %s", statusCode, resp.String())
+		return true, "", fmt.Errorf("%w: %d. Response: %s", unexpectedStatusCodeError, statusCode, resp.String())
 	}
 
 	var file GithubFile
 	err = resp.ToJSON(&file)
 	if err != nil {
 		zap.L().Error("Failed to parse GitHub json response", zap.Error(err))
-		return true, "", err
+		return true, "", fmt.Errorf("failed to convert GitHub response to JSON: %w", err)
 	}
 	return true, file.DownloadUrl, nil
 }

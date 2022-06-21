@@ -15,6 +15,7 @@ package gitfile
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -38,6 +39,12 @@ type SpiTokenFetcher struct {
 const (
 	letterBytes = "abcdefghijklmnopqrstuvwxyz1234567890"
 	duration    = 5 * time.Second
+)
+
+var (
+	taskCancelledError = errors.New("task is cancelled")
+	timeoutError       = errors.New("timed out")
+	matchError         = errors.New("\"There is a problem in matching the token. Usually, that can be related to unauthorized OAuth application in the requested repository,\"+\n\t\t\t\t\"mismatch of scopes set, or other error.")
 )
 
 func NewSpiTokenFetcher() *SpiTokenFetcher {
@@ -73,7 +80,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 	err := s.k8sClient.Create(ctx, newBinding)
 	if err != nil {
 		zap.L().Error("Error creating Token Binding item:", zap.Error(err))
-		return nil, err
+		return nil, fmt.Errorf("failed to create token binding: %w", err)
 	}
 
 	// scheduling the binding cleanup
@@ -98,10 +105,10 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		}
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("task is cancelled")
+			return nil, taskCancelledError
 		case <-timeout:
 			zap.L().Error("Timeout reached reading TB item:", zap.Error(err))
-			return nil, fmt.Errorf("TB reading task is timed out")
+			return nil, fmt.Errorf("reading the token binding %w", timeoutError)
 		default:
 			time.Sleep(200 * time.Millisecond)
 		}
@@ -125,10 +132,10 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		}
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("task is cancelled")
+			return nil, taskCancelledError
 		case <-timeout:
 			zap.L().Error("Timeout reached reading Token item:", zap.Error(err))
-			return nil, fmt.Errorf("token reading task is timed out")
+			return nil, fmt.Errorf("reading the token %w", timeoutError)
 		default:
 			time.Sleep(200 * time.Millisecond)
 		}
@@ -147,8 +154,7 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		}
 		errorMsg := readBinding.Status.ErrorMessage
 		if errorMsg != "" {
-			return nil, fmt.Errorf("There is a problem in matching the token. Usually, that can be related to unauthorized OAuth application in the requested repository,"+
-				"mismatch of scopes set, or other error. Message from operator: %s ", errorMsg)
+			return nil, fmt.Errorf("%w. Message from operator: %s", matchError, errorMsg)
 		}
 
 		secretName = readBinding.Status.SyncedObjectRef.Name
@@ -157,10 +163,10 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		}
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("task is cancelled")
+			return nil, taskCancelledError
 		case <-timeout:
 			zap.L().Error("Timeout reached reading TB item:", zap.Error(err))
-			return nil, fmt.Errorf("TB reading task is timed out")
+			return nil, fmt.Errorf("reading the token binding %w", timeoutError)
 		default:
 			time.Sleep(200 * time.Millisecond)
 		}
@@ -173,17 +179,17 @@ func (s *SpiTokenFetcher) BuildHeader(ctx context.Context, namespace, repoUrl st
 		err = s.k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: secretName}, tokenSecret)
 		if err != nil {
 			zap.L().Error("Error reading Token Secret item:", zap.Error(err))
-			return nil, err
+			return nil, fmt.Errorf("failed to read the token secret: %w", err)
 		}
 		if len(tokenSecret.Data) > 0 {
 			return &HeaderStruct{Authorization: "Bearer " + string(tokenSecret.Data["password"])}, nil
 		}
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("task is cancelled")
+			return nil, taskCancelledError
 		case <-timeout:
 			zap.L().Error("Timeout reached reading Secret item:", zap.Error(err))
-			return nil, fmt.Errorf("secred reading task is timed out")
+			return nil, fmt.Errorf("reading the secret %w", timeoutError)
 		default:
 			time.Sleep(200 * time.Millisecond)
 		}
@@ -215,7 +221,7 @@ func readTB(ctx context.Context, namespace, tBindingName string, k8sClient clien
 	readBinding := &v1beta1.SPIAccessTokenBinding{}
 	err := k8sClient.Get(ctx, client.ObjectKey{Namespace: namespace, Name: tBindingName}, readBinding)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read binding %s/%s: %w", namespace, tBindingName, err)
 	}
 	return readBinding, nil
 }
@@ -224,7 +230,8 @@ func randStringBytes(n int) string {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+		b[i] = letterBytes[rand.Intn(len(letterBytes))] //nolint:gosec // we're using this to produce a random name so
+		// the weakness of the generator is not a big deal here
 	}
 	return string(b)
 }

@@ -14,7 +14,12 @@
 package gitfile
 
 import (
+	"errors"
 	"fmt"
+)
+
+var (
+	invalidSourceError = errors.New("invalid source string")
 )
 
 // ScmProvider defines the interface that in order to determine if URL belongs to SCM provider
@@ -41,12 +46,12 @@ func detect(repoUrl, filepath, ref string, opts ...interface{}) (string, error) 
 	for _, d := range ScmProviders {
 		ok, resultUrl, err := d.detect(repoUrl, filepath, ref, opts...)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("detection failed: %w", err)
 		}
 		if !ok {
 			continue
 		}
 		return resultUrl, nil
 	}
-	return "", fmt.Errorf("invalid source string: %s for %s", repoUrl, filepath)
+	return "", fmt.Errorf("%w: %s for %s", invalidSourceError, repoUrl, filepath)
 }

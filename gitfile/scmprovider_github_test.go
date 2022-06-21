@@ -171,5 +171,5 @@ func TestGetUnexistingFile(t *testing.T) {
 	if err == nil {
 		t.Error("error expected")
 	}
-	assert.Equal(t, fmt.Sprint(err), "unexpected status code from GitHub API: 404. Response: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/reference/repos#get-repository-content\"}")
+	assert.Equal(t, "detection failed: unexpected status code from GitHub API: 404. Response: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/reference/repos#get-repository-content\"}", fmt.Sprint(err))
 }
