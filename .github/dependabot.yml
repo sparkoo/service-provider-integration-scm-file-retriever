@@ -6,7 +6,7 @@ updates:
       # Check for updates to GitHub Actions every weekday
       interval: daily
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/server"
     schedule:
       interval: daily
   - package-ecosystem: "gomod"
